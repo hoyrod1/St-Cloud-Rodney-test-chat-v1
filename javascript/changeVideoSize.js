@@ -1,4 +1,4 @@
-console.log(`//======== THE changeVideoSize FILE IS CONNECTED =======//`);
+// console.log(`//======== THE changeVideoSize FILE IS CONNECTED =======//`);
 
 // const supportedConstrants = navigator.mediaDevices.getSupportedConstraints();
 

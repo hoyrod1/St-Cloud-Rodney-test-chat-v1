@@ -1,4 +1,4 @@
-console.log(`//======== THE scripts FILE IS CONNECTED =======//`);
+// console.log(`//======== THE scripts FILE IS CONNECTED =======//`);
 
 // Cache the video element
 const videoEl = document.getElementById("my-video");

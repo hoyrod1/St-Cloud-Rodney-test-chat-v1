@@ -1,4 +1,4 @@
-console.log(`===== THE changeButtons FILE IS CONNECTED =====`);
+// console.log(`===== THE changeButtons FILE IS CONNECTED =====`);
 
 //=========================================================================================//
 const buttonsById = [

@@ -1,4 +1,4 @@
-console.log(`//======== THE inputOutput FILE IS CONNECTED =======//`);
+// console.log(`//======== THE inputOutput FILE IS CONNECTED =======//`);
 //=========================================================================================//
 const videoInputEl = document.getElementById("video-input");
 const audioInputEl = document.getElementById("audio-input");
@@ -9,7 +9,7 @@ const audioOutputEl = document.getElementById("audio-output");
 const getDevices = async () => {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    console.log(devices);
+    // console.log(devices);
     devices.forEach((device) => {
       const option = document.createElement("option");
       option.value = device.deviceId;

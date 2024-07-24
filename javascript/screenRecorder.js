@@ -1,4 +1,4 @@
-console.log(`//======== THE screenRecorder FILE IS CONNECTED =======//`);
+// console.log(`//======== THE screenRecorder FILE IS CONNECTED =======//`);
 //=========================================================================================//
 // Declare the mediaRecorder variable to be used for screen recording //
 let mediaRecorder;
