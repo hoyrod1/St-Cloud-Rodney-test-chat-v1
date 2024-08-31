@@ -1,16 +1,5 @@
 console.log(`======= Sanity Check script.js =======`);
 //=======================================================================================//
-const socket = io.connect("https://localhost:3000/");
-//=======================================================================================//
-
-//=======================================================================================//
-// Cache the video with the id with "local-video"
-const localVideoEl = document.getElementById("local-video");
-// Cache the video with the id with "remote-video"
-const remoteVideoEl = document.getElementById("remote-video");
-//=======================================================================================//
-
-//=======================================================================================//
 // Creates peerConfiguration with ICE server properties and of an array of stun servers
 let peerConfiguration = {
   iceServers: [
@@ -26,6 +15,29 @@ let peerConfiguration = {
 let localStream; // variable to hold the local video stream
 let remoteStream; // variable to hold the remote video stream
 let peerConnection; // the peerConnection that the two clients use to talk
+let didIOffer = false;
+//=======================================================================================//
+
+//=======================================================================================//
+const userName = "HotRod-" + Math.floor(Math.random() * 100000);
+const password = "1973";
+document.getElementById("user-name").innerHTML = userName;
+//=======================================================================================//
+
+//=======================================================================================//
+// Cache the video with the id with "local-video"
+const localVideoEl = document.getElementById("local-video");
+// Cache the video with the id with "remote-video"
+const remoteVideoEl = document.getElementById("remote-video");
+//=======================================================================================//
+
+//=======================================================================================//
+const socket = io.connect("https://localhost:3000/", {
+  auth: {
+    userName,
+    password,
+  },
+});
 //=======================================================================================//
 
 //=======================================================================================//
@@ -46,8 +58,11 @@ const call = async (e) => {
   try {
     console.log(`Creating offer...`);
     const offer = await peerConnection.createOffer();
-    console.log(offer);
+    // console.log(offer);
+    didIOffer = true;
     peerConnection.setLocalDescription(offer);
+    // This emits/sends the "offer" to the signaling server
+    socket.emit("newOffer", offer);
   } catch (error) {
     console.log(error);
   }
@@ -69,7 +84,15 @@ const createPeerConnection = () => {
 
     peerConnection.addEventListener("icecandidate", (e) => {
       console.log(`........ICE candidate found!`);
-      console.log(e);
+      // console.log(e);
+      // If there is an "ïceCandidate" emit/send "ïceCandidate" to the signaling server
+      if (e.candidate) {
+        socket.emit("sendIceCandidateToSignalingServer", {
+          iceCandidate: e.candidate,
+          iceUserName: userName,
+          didIOffer,
+        });
+      }
     });
     resolve();
   });
