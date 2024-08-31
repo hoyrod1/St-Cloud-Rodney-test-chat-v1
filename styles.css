@@ -1,0 +1,64 @@
+.justify-content-md-center {
+  margin: 0 0 5px 0;
+}
+
+#videos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+}
+
+.video-player {
+  background-color: black;
+  width: 100%;
+}
+
+#video-wrapper {
+  position: relative;
+}
+
+#waiting {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  width: 240px;
+  height: 40px;
+}
+
+#answer {
+}
+
+/*---------------------------- Media Query ----------------------------*/
+
+/*------------------- MEDIA QUERY FOR 57.875em WIDTH ------------------*/
+@media (max-width: 57.875em) {
+  .justify-content-md-center {
+    gap: 5px;
+  }
+}
+
+/*------------------- MEDIA QUERY FOR 26.75em WIDTH ------------------*/
+@media (max-width: 26.75em) {
+  #videos {
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+  }
+
+  #hangup,
+  #call {
+    width: 18%;
+  }
+}
+
+/*------------------- MEDIA QUERY FOR 22.5em WIDTH ------------------*/
+@media (max-width: 22.5em) {
+  #hangup,
+  #call {
+    width: 20%;
+  }
+}
