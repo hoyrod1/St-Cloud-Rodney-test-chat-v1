@@ -65,27 +65,40 @@ const call = async (e) => {
 
 //=======================================================================================//
 answerOffer = async (offerObj) => {
-  await fetchUserMedia()
+  await fetchUserMedia();
+  // peerConnection is set and sends our STUN server
+  await createPeerConnection(offerObj);
+  // Optional object added for options request for the answer but currently none available
+  const answer = await peerConnection.createAnswer({});
+  // This set up the answer for client 2 and uses the "answer" as the local description
+  peerConnection.setLocalDescription(answer);
   console.log(offerObj);
+  console.log(answer);
 };
 //=======================================================================================//
 
 //=======================================================================================//
 const fetchUserMedia = () => {
-  return
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: true,
-    //audio: true,
+  return new Promise(async (resolve, reject) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        //audio: true,
+      });
+      localVideoEl.srcObject = stream;
+      localStream = stream;
+      resolve();
+    } catch (error) {
+      console.log(error);
+      reject();
+    }
   });
-  localVideoEl.srcObject = stream;
-
-  localStream = stream;
-}
+};
 //=======================================================================================//
 
 //=======================================================================================//
 // Instatiate a new RTCPeerConnection
-const createPeerConnection = () => {
+const createPeerConnection = (offerObj) => {
   return new Promise(async (resolve, reject) => {
     // RTCPeerConnection is the thing that creates the connection
     // The peerConfiguration object is passed as an argument with an array of stun servers
@@ -108,6 +121,11 @@ const createPeerConnection = () => {
         });
       }
     });
+    if (offerObj) {
+      // This will not be set when called from the function "call()""
+      // This will be set when called from the function "answerOffer()"
+      peerConnection.setRemoteDescription(offerObj.offer);
+    }
     resolve();
   });
 };
