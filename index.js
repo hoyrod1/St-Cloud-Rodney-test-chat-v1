@@ -98,7 +98,7 @@ io.on("connection", (socket) => {
         // If the answer is already here, emit the iceCandidates to the user
       }
     }
-    console.log(offers);
+    // console.log(offers);
   });
   //--------------------------------------------------------------------------------------//
 });

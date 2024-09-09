@@ -43,13 +43,7 @@ const socket = io.connect("https://localhost:3000/", {
 //=======================================================================================//
 // Async function runs when inbound client intiates a call
 const call = async (e) => {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: true,
-    //audio: true,
-  });
-  localVideoEl.srcObject = stream;
-
-  localStream = stream;
+  await fetchUserMedia();
 
   // peerConnection is set and sends our STUN server
   await createPeerConnection();
@@ -67,6 +61,26 @@ const call = async (e) => {
     console.log(error);
   }
 };
+//=======================================================================================//
+
+//=======================================================================================//
+answerOffer = async (offerObj) => {
+  await fetchUserMedia()
+  console.log(offerObj);
+};
+//=======================================================================================//
+
+//=======================================================================================//
+const fetchUserMedia = () => {
+  return
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: true,
+    //audio: true,
+  });
+  localVideoEl.srcObject = stream;
+
+  localStream = stream;
+}
 //=======================================================================================//
 
 //=======================================================================================//
