@@ -71,9 +71,13 @@ answerOffer = async (offerObj) => {
   // Optional object added for options request for the answer but currently none available
   const answer = await peerConnection.createAnswer({});
   // This set up the answer for client 2 and uses the "answer" as the local description
-  peerConnection.setLocalDescription(answer);
+  await peerConnection.setLocalDescription(answer);
   console.log(offerObj);
   console.log(answer);
+
+  //Below should have local-pranswer because CLIENT2 has set localDescription to it's answer
+  //(but it probably won't be) if you are using Chrome browser
+  // console.log(peerConnection.signalingState);
 };
 //=======================================================================================//
 
@@ -109,6 +113,11 @@ const createPeerConnection = (offerObj) => {
       peerConnection.addTrack(track, localStream);
     });
 
+    peerConnection.addEventListener("signalingstatechange", (event) => {
+      console.log(event);
+      console.log(peerConnection.signalingState);
+    });
+
     peerConnection.addEventListener("icecandidate", (e) => {
       console.log(`........ICE candidate found!`);
       // console.log(e);
@@ -124,7 +133,9 @@ const createPeerConnection = (offerObj) => {
     if (offerObj) {
       // This will not be set when called from the function "call()""
       // This will be set when called from the function "answerOffer()"
-      peerConnection.setRemoteDescription(offerObj.offer);
+      // console.log(peerConnection.signalingState); // Should be (stable) no setDescription
+      await peerConnection.setRemoteDescription(offerObj.offer);
+      // console.log(peerConnection.signalingState); // Should have-remote-offer
     }
     resolve();
   });
