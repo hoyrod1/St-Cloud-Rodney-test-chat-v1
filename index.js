@@ -4,6 +4,7 @@ const express = require("express");
 const app = express();
 const socketIo = require("socket.io");
 const path = require("path");
+const { connected } = require("process");
 const port = 3000;
 app.use(express.static(path.join(__dirname)));
 //=======================================================================================//
@@ -75,14 +76,48 @@ io.on("connection", (socket) => {
     offers.push({
       offerUserName: userName,
       offer: newOffer,
-      offerIceCandidate: [],
+      offerIceCandidates: [],
       answerUserName: null,
       answer: null,
-      answerIceCandidate: [],
+      answererIceCandidates: [],
     });
     // console.log(newOffer.sdp.slice(50));
     // Send out to all connected sockets EXCEPTS the caller
     socket.broadcast.emit("newOfferAwaiting", offers.slice(-1));
+  });
+  //--------------------------------------------------------------------------------------//
+
+  //--------------------------------------------------------------------------------------//
+  socket.on("newAnswer", (offerObj, ackFunction) => {
+    // console.log(offerObj);
+    console.log(ackFunction);
+    // emit the "offerObj" object back to CLIENT1 using CLIENT1 socketid
+    const socketToAnswer = connectedSockets.find(
+      (socket) => socket.userName === offerObj.offerUserName
+    );
+    if (!socketToAnswer) {
+      console.log("No matching socket");
+      return;
+    }
+    // if matching socket found we can emit to it.
+    const socketIdToAnswer = socketToAnswer.socketId;
+    // Find the offer to update so we can emit to it
+    const offerToUpdate = offers.find(
+      (o) => o.offerUserName === offerObj.offerUserName
+    );
+    if (!offerToUpdate) {
+      console.log("No offerToUpdate");
+      return;
+    }
+
+    // ackFunction sends back all the iceCandidates already collected
+    ackFunction(offerToUpdate.offerIceCandidates);
+    offerToUpdate.answer = offerObj.answer;
+    offerToUpdate.answerUserName = userName;
+
+    // socket has a .to() method which allows emiting to a "room"
+    // every socket has it's own room
+    socket.to(socketIdToAnswer).emit("answerResponse", offerToUpdate);
   });
   //--------------------------------------------------------------------------------------//
 
@@ -94,8 +129,40 @@ io.on("connection", (socket) => {
     if (didIOffer) {
       const offerInOffers = offers.find((o) => o.offerUserName === iceUserName);
       if (offerInOffers) {
-        offerInOffers.offerIceCandidate.push(iceCandidate);
+        // this ice is coming from the offerer, send it to the answerer
+        offerInOffers.offerIceCandidates.push(iceCandidate);
+        // 1. When the answerer answers, all the existing candidates are sent
+        // 2. Any candidates that come in after the offer has been answered, will be passed through
+        if (offerInOffers.answerUserName) {
+          // pass it through to the other sockets
+          const socketToSendTo = connectedSockets.find(
+            (socket) => socket.userName === offerInOffers.answerUserName
+          );
+          if (socketToSendTo) {
+            socket
+              .to(socketToSendTo.socketId)
+              .emit("receivedIceCandidateFromServer", iceCandidate);
+          } else {
+            console.log("Ice Candidate received but could not find answerer");
+          }
+        }
         // If the answer is already here, emit the iceCandidates to the user
+      }
+    } else {
+      const offerInOffers = offers.find(
+        (offer) => offer.answerUserName === iceUserName
+      );
+      // this ice is coming from the answerer, send it to the offerer
+      // pass it through to the other sockets
+      const socketToSendTo = connectedSockets.find(
+        (socket) => socket.userName === offerInOffers.offerUserName
+      );
+      if (socketToSendTo) {
+        socket
+          .to(socketToSendTo.socketId)
+          .emit("receivedIceCandidateFromServer", iceCandidate);
+      } else {
+        console.log("Ice Candidate received but could not find offerer");
       }
     }
     // console.log(offers);

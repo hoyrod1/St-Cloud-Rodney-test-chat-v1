@@ -15,13 +15,27 @@ socket.on("newOfferAwaiting", (offers) => {
 //=======================================================================================//
 
 //=======================================================================================//
+socket.on("answerResponse", (offerObj) => {
+  console.log(offerObj);
+  addAnswer(offerObj);
+});
+//=======================================================================================//
+
+//=======================================================================================//
+socket.on("receivedIceCandidateFromServer", (iceCandidate) => {
+  addNewIceCandidate(iceCandidate);
+  console.log(`We have received the IceCandidate which is: ${iceCandidate}`);
+});
+//=======================================================================================//
+
+//=======================================================================================//
 function createOfferElement(offers) {
   const answerButton = document.getElementById("answer");
 
   offers.forEach((o) => {
     console.log(o);
     const newOfferElement = document.createElement("div");
-    newOfferElement.innerHTML = `<button class="btn btn-success col-1">${o.offerUserName}</button>`;
+    newOfferElement.innerHTML = `<button class="btn btn-success col-1">Answer ${o.offerUserName}</button>`;
     newOfferElement.addEventListener("click", (e) => {
       answerOffer(o);
     });

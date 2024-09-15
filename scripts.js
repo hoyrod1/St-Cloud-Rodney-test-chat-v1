@@ -32,7 +32,7 @@ const remoteVideoEl = document.getElementById("remote-video");
 //=======================================================================================//
 
 //=======================================================================================//
-const socket = io.connect("https://localhost:3000/", {
+const socket = io.connect("https://192.168.1.208:3000/", {
   auth: {
     userName,
     password,
@@ -72,11 +72,34 @@ answerOffer = async (offerObj) => {
   const answer = await peerConnection.createAnswer({});
   // This set up the answer for client 2 and uses the "answer" as the local description
   await peerConnection.setLocalDescription(answer);
-  console.log(offerObj);
-  console.log(answer);
+  // console.log(offerObj);
+  // console.log(answer);
 
   //Below should have local-pranswer because CLIENT2 has set localDescription to it's answer
   //(but it probably won't be) if you are using Chrome browser
+  // console.log(peerConnection.signalingState);
+
+  // Update the "Offer" object "answer" property so the server knows which offer it is.
+  offerObj.answer = answer;
+
+  // emit to the answer to the signaling server so it can emit to CLIENT 1
+  // expect a response from the server with the existing ICE candidates
+  // emitWithAck is new with (socket.io #4)
+  const offerIceCandidates = await socket.emitWithAck("newAnswer", offerObj);
+  offerIceCandidates.forEach((c) => {
+    peerConnection.addIceCandidate(c);
+    console.log(`===== Added Ice Candidate ${c} =====`);
+  });
+  // console.log(offerIceCandidates);
+};
+//=======================================================================================//
+
+//=======================================================================================//
+const addAnswer = async (offerObj) => {
+  // addAnwser is called in the socketListeners when an answerResponse is emitted
+  // at this point the offer and the answer has been exchanged
+  // now CLIENT1 needs to set the remoteDescription
+  await peerConnection.setRemoteDescription(offerObj.answer);
   // console.log(peerConnection.signalingState);
 };
 //=======================================================================================//
@@ -108,8 +131,11 @@ const createPeerConnection = (offerObj) => {
     // The peerConfiguration object is passed as an argument with an array of stun servers
     // This will fetch us ICE candidates
     peerConnection = await new RTCPeerConnection(peerConfiguration);
+    remoteStream = new MediaStream();
+    remoteVideoEl.srcObject = remoteStream;
 
     localStream.getTracks().forEach((track) => {
+      // Add localtrack so that they can be sent once connection is established
       peerConnection.addTrack(track, localStream);
     });
 
@@ -119,7 +145,7 @@ const createPeerConnection = (offerObj) => {
     });
 
     peerConnection.addEventListener("icecandidate", (e) => {
-      console.log(`........ICE candidate found!`);
+      // console.log(`........ICE candidate found!`);
       // console.log(e);
       // If there is an "ïceCandidate" emit/send "ïceCandidate" to the signaling server
       if (e.candidate) {
@@ -130,6 +156,16 @@ const createPeerConnection = (offerObj) => {
         });
       }
     });
+
+    peerConnection.addEventListener("track", (event) => {
+      console.log("Received the other track from the other peer");
+      console.log(event);
+      event.streams[0].getTracks().forEach((track) => {
+        remoteStream.addTrack(track, remoteStream);
+        console.log(`Added the video track to the remote stream: ${track}`);
+      });
+    });
+
     if (offerObj) {
       // This will not be set when called from the function "call()""
       // This will be set when called from the function "answerOffer()"
@@ -139,6 +175,13 @@ const createPeerConnection = (offerObj) => {
     }
     resolve();
   });
+};
+//=======================================================================================//
+
+//=======================================================================================//
+const addNewIceCandidate = (iceCandidate) => {
+  peerConnection.addIceCandidate(iceCandidate);
+  console.log(`We have added another IceCandidate which is: ${iceCandidate}`);
 };
 //=======================================================================================//
 
